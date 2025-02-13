@@ -25,6 +25,8 @@ from users.models.reportingarea import ReportingArea as ReportingAreaModel
 from users.models.timeavailability import TimeAvailability as TimeAvailabilityModel
 from users.models.patientdata import PatientInfo as PatientInfo
 from users.models.patientdetails import PatientDetails as PatientDetails
+from users.models.XRAYPatientData import xrayPatientDetails
+from users.models.ECGPatientData import ecgPatientDetails
 from users.models.audiopatientdata import audioPatientDetails
 from users.models.optometrydata import optopatientDetails
 from users.models.vitalpatientdata import vitalPatientDetails
