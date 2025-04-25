@@ -1,0 +1,14 @@
+
+
+<div class="d-flex justify-content-center">
+	<div class="card m-2 p-3 w-75">
+<div>
+	 <a href="/status/open" class="btn btn-danger rounded-pill">{{open}} Open Tickets</a>
+	 <a href="/status/pending" class="btn btn-info rounded-pill">{{pending}} Pending Tickets</a>
+	 <a href="/status/closed" class="btn btn-success rounded-pill">{{closed}} Closed Tickets</a>
+	 <a href="/status/recent" class="btn btn-dark rounded-pill">Recent</a>
+</div>
+{% include 'tickets/tickets_list.html' %}
+{% include 'tickets/paginator.html' %}
+</div>
+</div>

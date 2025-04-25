@@ -1,0 +1,126 @@
+/* body,html{
+	margin: 0;
+	width: 100%;
+	height: 100%;
+}
+.cover-img{
+	background-image: url('cover.jpg');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 100%;
+	position:absolute;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+}
+
+.logo{
+	width: 150px;
+	height: auto;
+}
+
+.appear{
+	animation-name: appear-anni;
+	animation-duration: 0.5s;
+}
+
+.hov-scale:hover{
+transform: scale(1.1);
+}
+
+.my-card{
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	border-radius: 10px;
+}
+
+
+@keyframes appear-anni{
+	0%{
+		transform: scale(0);
+	}
+	100%{
+		transform: scale(1);
+	}
+} */
+body, html {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	overflow-x: hidden;
+	background: linear-gradient(135deg, #d4fc79, #96e6a1);
+}
+
+/* Logo styling */
+.logo {
+	width: 150px;
+	height: auto;
+	transition: transform 0.3s ease;
+}
+.logo:hover {
+	transform: scale(1.05);
+}
+
+/* Smooth appear animation */
+.appear {
+	animation: appear-anni 0.6s ease forwards;
+	transform-origin: center;
+}
+
+/* Hover scale effect */
+.hov-scale {
+	transition: transform 0.3s ease;
+	cursor: pointer;
+}
+.hov-scale:hover {
+	transform: scale(1.08);
+}
+
+/* Card styling */
+.my-card {
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 12px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+	padding: 20px;
+	background-color: #fff;
+	transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.my-card:hover {
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+	transform: translateY(-5px);
+}
+
+/* Appear animation keyframes */
+@keyframes appear-anni {
+	0% {
+		transform: scale(0.5);
+		opacity: 0;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+	.logo {
+		width: 120px;
+	}
+	.my-card {
+		padding: 15px;
+	}
+}
+
+@media (max-width: 480px) {
+	body {
+		background: linear-gradient(135deg, #e8edf1, #f5f7f9); /* a lighter fallback gradient for small screens */
+	}
+	.logo {
+		width: 100px;
+	}
+}

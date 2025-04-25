@@ -1,0 +1,20 @@
+{% extends 'user/base.html' %}
+
+{% block title %}
+Register Form
+{% endblock %}
+
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="d-flex justify-content-center">
+<div class="card m-2 p-3 w-50">
+<form method="POST" novalidate enctype="multipart/form-data">
+	{% csrf_token %}
+	<h1 class="text-primary">NEW TECHNICIAN</h1>
+	{{ user_form|crispy }}
+	{{ user_profile|crispy}}
+	<input type="submit" value="Register" class="btn btn-success">
+</form>
+</div>
+</div>
+{% endblock %}

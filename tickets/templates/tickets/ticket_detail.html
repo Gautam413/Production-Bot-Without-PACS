@@ -1,0 +1,197 @@
+{% extends 'user/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="d-flex flex-column justify-content-center align-items-center">
+<div class="card p-3 w-75 mb-1 mt-1" style="border-radius: 20px;">
+<div>
+	<!-- User Profile -->
+	<div style="
+		display: inline-flex;	
+	" 
+	>
+		<div>
+
+			<img src="{{ticket.user.profile.photo.url}}" alt="profile"
+			width="50" height="50"
+			class="border border-primary rounded-circle mr-3" 
+			>
+		</div>
+		<div>
+			<h5 style="color: blue;">{{ticket.user.username}}
+				<span class="badge badge-warning rounded-pill"
+					style="font-size: 0.5em;" 
+				>{{ticket.name}}</span>
+			</h5>
+			<p style="font-size: 0.8em;color: #7EA6E0;">{{ticket.updated}}</p>
+		</div>
+	</div>
+
+	<!-- for content -->
+	<div>
+
+		<div>
+		<h3 style="
+			color: #7EA6E0;
+			font-size: 2.5em;
+			display: inline;
+		">{{ticket.subject}}
+
+		{% if request.user.is_superuser or request.user.is_staff %}
+		<span class="badge badge-info rounded-pill"
+			  style="font-size: 0.3em;" 
+		>{{ticket.category}}
+		</span>
+		{% endif %}
+		</h3>
+		{% if not request.user.is_superuser and not request.user.is_staff %}
+			{% include 'tickets/edit_ticket.html' %}
+		{% endif %}
+
+		</div>
+
+
+
+		<p style="text-align: justify;font-size: 1.3em;
+		color: #470070;
+		">{{ticket.description}}</p>
+
+		<div style="display: inline-flex;">
+
+		<!-- ticket have attachment ??? -->
+		{% if ticket.attachment %}
+		<a href={{ticket.attachment.url}} class="btn btn-info rounded-pill mr-1">View Attachment</a>
+		{% endif %}
+
+		<!-- Priority of Tickets  -->
+		<div class="{{pri_design}} mr-1">{{priority}}</div>
+
+		<!-- Status Buttons Condition -->
+		{% if ticket.status == 'Open' %}
+		<!-- status  button -->
+		{% if request.user.is_superuser or request.user.is_staff %}
+		<div class="btn-group">
+			<button type="button" class="btn btn-danger dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			Open
+			</button>
+			<div class="dropdown-menu">
+				<a class="dropdown-item" href="pending">Pending</a>
+				<a class="dropdown-item" href="close">Close</a>
+			</div>
+		</div>
+		{% else %}
+		<div class="btn btn-danger rounded-pill">Open</div>
+		{% endif %}
+
+
+		{% elif ticket.status == 'Pending' %}
+		{% if request.user.is_superuser or request.user.is_staff %}
+		<div class="btn-group">
+			  <button type="button" class="btn btn-info dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			    Pending
+			  </button>
+			  <div class="dropdown-menu">
+			    <a class="dropdown-item" href="open">Open</a>
+			    <a class="dropdown-item" href="close">Close</a>
+			  </div>
+		</div>
+		{% else %}
+		<div class="btn btn-info rounded-pill">Pending</div>
+		{% endif %}
+		{% else %}
+
+		{% if request.user.is_superuser or request.user.is_staff %}
+		<div class="btn-group">
+			  <button type="button" class="btn btn-success dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			    Closed
+			  </button>
+			  <div class="dropdown-menu">
+			    <a class="dropdown-item" href="open">Open</a>
+			    <a class="dropdown-item" href="pending">Pending</a>
+			  </div>
+			</div>
+		{% else %}
+		<div class="btn btn-success rounded-pill">Closed</div>
+		{% endif %}
+		{% endif %}
+
+		{% if request.user.is_superuser %}
+		<div class="btn-group ml-1">
+			  <button type="button" class="btn btn-info dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			    Categories
+			  </button>
+			  <div class="dropdown-menu bg-primary">
+			    {% for category in categories %}
+			    <a class="dropdown-item text-white border-bottom" href="category/{{category.slug}}">{{category.name}}</a>
+			    {% endfor %}
+			  </div>
+		</div>
+		{% endif %}
+
+
+		<!-- Convert To PDF if user is admin and technician  -->
+		{% if request.user.is_superuser or request.user.is_staff %}
+		<a href="/ticket/pdf/{{ticket.id}}" class="btn btn-success rounded-pill ml-1">PDF</a>
+		{% endif %}
+		<!-- end for PDF Convert Button -->
+
+
+	</div>
+	</div>
+</div>
+</div>
+
+	
+
+	<!-- View Comments -->
+{% if comments %}
+<div class="card p-3 w-75 mb-1" style="border-radius: 20px;">
+	<div>
+
+		{%for comment in comments %}
+		<!-- for prfile -->
+		<div style="display:inline-flex;" class="mt-3">
+			<div>
+				<img src="{{comment.user.profile.photo.url}}"
+					width="50" height="50"
+					class="border border-primary rounded-circle mr-3" 
+					alt="Profile" 
+				>
+			</div>
+			<div>
+				<h5 style="font-size: 0.9em;color:blue;">{{comment.user.username}}</h5>
+				<p style="font-size: 0.7em;color:#7EA6E0">{{comment.updated}}</p>
+			</div>
+		</div>
+		<br>
+
+		<!-- content -->
+		<div>
+			<p style="
+				color: #006088;
+			">{{comment.comment}}</p>
+		</div>
+		<hr>
+
+
+		{% endfor %}
+	</div>
+</div>
+{% endif %}
+
+	<!-- for Comment Form -->
+<div class="card p-3 w-75 mb-1" style="border-radius: 20px;">
+	<div class="row">
+
+		<div class="col">
+			<form method="POST" novalidate>
+				{% csrf_token %}
+				{{comment_form.comment|as_crispy_field}}
+				<input type="submit" name="submit" value="Comment" class="btn btn-info mb-5">		
+			</form>	
+		</div>
+		<div class="col"></div>
+		<div class="col"></div>
+	</div>
+</div>
+</div>	
+{% endblock %}
