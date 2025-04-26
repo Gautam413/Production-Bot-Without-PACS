@@ -11,7 +11,7 @@ urlpatterns = [
     path('', ui_views.landing_page, name='management-home'),
     path('task/', ui_views.dashboard, name='Dashboard'),
     path('task/register/', ui_views.register, name='register'),
-    path('task/login/', ui_views.user_login, name='login'),
+    path('task/login/', ui_views.user_login, name='login1'),
     path('task/HomePage/', ui_views.Home, name='TaskManagement'),
     path('task/CreateTask/', ui_views.addTask, name='CreateTask'),
     path('task/mytasks/', ui_views.Tasks, name='mytask'),
@@ -20,6 +20,7 @@ urlpatterns = [
     path('task/updatestatus/<int:pk>/', ui_views.UpdateStatus, name="updatestatus"),
     path('task/assigntask/<int:pk>/', ui_views.assign, name="AssignTask"),
     path('task/comments/<int:pk>/', ui_views.comments, name="Comments"),
+    
 
     # -------------------- TICKET MANAGEMENT --------------------
     path('dashboard/',ticket_views.dashboard,name='dashboard'),
@@ -27,7 +28,7 @@ urlpatterns = [
     path('tickets/<int:id>/<str:status>/', ticket_views.change_status, name='change-status'),
     path('tickets/close/<int:ticket_id>/', ticket_views.close_ticket, name='close_ticket'),
     path('tickets/<int:id>/category/<slug:category>/', ticket_views.change_category, name='change-category'),
-    path('tickets/create/', ticket_views.create_ticket, name='create-ticket'),
+    path('dashboard/create/', ticket_views.create_ticket, name='create'),
     path('tickets/status/<str:status>/', ticket_views.status_view, name='status-view'),
     path('tickets/category/new/', ticket_views.new_category, name='new-category'),
     path('tickets/category/delete/<slug:cat>/', ticket_views.delete_category, name='delete-category'),
@@ -48,7 +49,7 @@ urlpatterns = [
     path('user/password_reset/done/', auth.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('user/reset/<uidb64>/<token>/', auth.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('user/reset/done/', auth.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    path('user/register/', user_views.register, name='user-register'),
+    path('user/register/', user_views.register, name='register'),
     path('user/edit/', user_views.edit, name='edit'),
 
     # -------------------- TECH --------------------
@@ -63,5 +64,5 @@ urlpatterns = [
 
     # -------------------- SYSTEM --------------------
     path('system/error/', user_views.error, name='error'),
-    path('system/contact-us/', user_views.contactus, name='contact-us'),
+    path('dashboard/user/system/contact-us', user_views.contactus, name='contact-us'),
 ]

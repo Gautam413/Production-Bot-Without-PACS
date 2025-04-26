@@ -11,11 +11,11 @@ from Management.DAL.Entities.Users import Users
 
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
-    list_display = ('UserID', 'UserName', 'FirstName', 'LastName')  # Corrected field names
+    list_display = ('UserID', 'UserName', 'firstname', 'lastname')
 
 @admin.register(TaskInformation)
 class TaskInformationAdmin(admin.ModelAdmin):
-    list_display = ('TaskID', 'Title', 'StartDate', 'DueDate', 'AssignedBy', 'Status', 'PriorityID')
+    list_display = ('TaskID', 'Title', 'StartDate', 'DueDate', 'Assignedby', 'Status', 'PriorityID')
     search_fields = ('Title',)
 
 @admin.register(TaskData)

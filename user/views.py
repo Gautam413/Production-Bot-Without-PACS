@@ -199,4 +199,4 @@ def contactus(request):
 @require_POST
 def custom_logout(request):
     logout(request)
-    return redirect('login')
+    return redirect('user-login')

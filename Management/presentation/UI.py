@@ -82,31 +82,35 @@ def Home(request):
 
 
 def addTask(request):
+    user_id = request.session.get('user_id')
+    user=viewID(user_id,'Users')
+    # data=TaskData.objects.select_related('TaskID')
+    # for i in data:
+    #     if i.AssignedTo.firstname=='Sasidhar':
+    #         print(i.AssignedTo.firstname)
     if request.method == 'POST':
         form = TaskForm(request.POST)
         if form.is_valid():
             cleaned_data = form.cleaned_data
-            priority_obj = viewID(cleaned_data['PriorityID'], 'Priority')
-
-            if priority_obj is None:
-                return HttpResponse("Error: Priority does not exist", status=400)
-
+            user=viewID(user_id,'Users')
+            priority= viewID(cleaned_data['PriorityID'],'Priority')
+            status= viewID(cleaned_data['Status'],'Status')
+            
             task = TaskInformationServices(
                 TaskID=None,
                 Title=cleaned_data['Title'],
                 Description=cleaned_data['Description'],
+                StartDate=None,
                 DueDate=cleaned_data['DueDate'],
-                Assignedby=request.user,  # Ensure Assignedby is set correctly
-                Status=cleaned_data['Status'],
-                Priority=priority_obj,
+                Assignedby=user, 
+                Status=status,
+                Priority=priority,
             )
-
             InsertTask(task)
-            return redirect('task_list')  # Adjust as needed
-
+            return redirect('TaskManagement')
     else:
         form = TaskForm()
-    return render(request, 'add_task.html', {'form': form})
+    return render(request, 'CreateTask.html', {'form': form})
 
 def updateTask(request,pk):
     data=viewID(pk,"TaskInformation")
