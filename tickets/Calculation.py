@@ -73,7 +73,7 @@ def num_of_category():
 			color_index = 0;
 		
 	data["None"] = { "number":total_ticket-has_category,
-					 "percentage": round(((total_ticket-has_category)/total_ticket)*100,1),
+					 "percentage": round(((total_ticket - has_category) / total_ticket) * 100, 1) if total_ticket > 0 else 0.0,
 					 "color":"gray"
 					}
 
