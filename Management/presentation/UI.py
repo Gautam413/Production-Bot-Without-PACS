@@ -130,7 +130,7 @@ def updateTask(request,pk):
                 Description=task['Description'],
                 StartDate=None,
                 DueDate=data['DueDate'],
-                Assignedby=user, 
+                Assignedby=user.UserName, 
                 Status=status,
                 Priority=priority,
             )
