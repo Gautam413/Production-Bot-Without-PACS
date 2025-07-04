@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+{% comment %} <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   {% load static %}
 
   <a class="navbar-brand" href="{% url 'dashboard' %}">
@@ -40,10 +40,10 @@
         
       {% else %}
         <li class="nav-item {{new_ticket}}">
-          <a class="nav-link" href="/dashboard/create/"><i class="fas fa-ticket-alt"> NEW TICKETS</i></a>
+          <a class="nav-link" href="create"><i class="fas fa-ticket-alt"> NEW TICKETS</i></a>
         </li>
         <li class="nav-item {{contact_us}}">
-          <a class="nav-link" href="/dashboard/user/system/contact-us"><i class="fas fa-sitemap"> CONTACT US</i></a>
+          <a class="nav-link" href="{% url 'contact-us' %}"><i class="fas fa-sitemap"> CONTACT US</i></a>
         </li>
       {% endif %}
         
@@ -76,6 +76,167 @@
   <li class="bg-success text-white" style="padding: 2px;text-align: center;">
     {{ message }}
   </li>
+  {% endfor %}
+</ul>
+{% endif %} {% endcomment %}
+
+
+{% load static %}
+<style>
+  .navbar-custom {
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    padding: 0.75rem 1.5rem;
+  }
+
+  .navbar-custom .nav-link {
+    color: white;
+    font-weight: 500;
+    transition: color 0.3s ease, background-color 0.3s ease;
+    border-radius: 8px;
+    padding: 8px 14px;
+  }
+
+  .navbar-custom .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #f8f9fa;
+  }
+
+  .dropdown-menu {
+    background-color: #2a5298;
+    border: none;
+    border-radius: 10px;
+  }
+
+  .dropdown-menu .dropdown-item {
+    color: white;
+    transition: background-color 0.2s ease;
+  }
+
+  .dropdown-menu .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #f8f9fa;
+  }
+
+  .dropdown-toggle {
+    font-weight: 500;
+  }
+
+  .navbar-brand img {
+    border-radius: 50%;
+  }
+
+  .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' 
+    xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%28255, 255, 255, 0.7%29' 
+    stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' 
+    d='M4 7h22M4 15h22M4 23h22'/ %3E%3C/svg%3E");
+  }
+
+  .user-photo {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border: 2px solid white;
+    margin-left: 15px;
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-custom">
+  <a class="navbar-brand" href="{% url 'dashboard' %}">
+    <img src="{% static 'pictures/logo1_no_background.png' %}" width="55" height="55" class="animate__animated animate__flipInX" alt="Logo">
+  </a>
+
+  {% comment %} <a class="navbar-brand" href="{% if is_technician %}{% url 'technic-dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}">
+  <img src="{% static 'images/logo.png' %}" alt="Logo" height="30">
+</a> {% endcomment %}
+
+
+  <button class="navbar-toggler text-white" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" 
+          aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavDropdown">
+    <ul class="navbar-nav mr-auto">
+     
+
+   
+  {% if user.is_superuser %}
+  <li class="nav-item {{ tech }}">
+    <a class="nav-link" href="{% url 'tech-view' %}"><i class="fas fa-users-cog mr-1"></i>TECHNICIAN</a>
+  </li>
+  <li class="nav-item {{ customer }}">
+    <a class="nav-link" href="{% url 'customer-view' %}"><i class="fas fa-users mr-1"></i>CUSTOMERS</a>
+  </li>
+  <li class="nav-item {{ category }}">
+    <a class="nav-link" href="{% url 'new-category' %}"><i class="fas fa-stream mr-1"></i>CATEGORY</a>
+  </li>
+  <li class="nav-item {{ nav_ticket }}">
+    <a class="nav-link" href="{% url 'tickets' %}"><i class="fas fa-paste mr-1"></i>TICKETS</a>
+  </li>
+
+{% elif is_technician %}
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'technic-dashboard' %}">Technician Dashboard</a>
+  </li>
+
+{% else %}
+<li class="nav-item {{dashboard}}">
+  <a class="nav-link" href="{% url 'dashboard' %}"><i class="fas fa-chart-line mr-1"></i>DASHBOARD</a>
+</li>
+  <li class="nav-item {{ new_ticket }}">
+    <a class="nav-link" href="{% url 'create-ticket' %}"><i class="fas fa-ticket-alt mr-1"></i>NEW TICKET</a>
+  </li>
+  <li class="nav-item {{ contact_us }}">
+    <a class="nav-link" href="{% url 'contact-us' %}"><i class="fas fa-sitemap mr-1"></i>CONTACT US</a>
+  </li>
+{% endif %}
+
+</ul>
+
+    <!-- User Dropdown -->
+    <div class="btn-group">
+      <button type="button" class="btn btn-light dropdown-toggle rounded-pill text-dark" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {{ user.username }}
+      </button>
+      <div class="dropdown-menu dropdown-menu-right shadow">
+        <a class="dropdown-item" href="{% url 'edit' %}"><i class="fas fa-user-circle mr-2"></i>Profile</a>
+        <a class="dropdown-item" href="{% url 'password_change' %}"><i class="fas fa-lock-open mr-2"></i>Change Password</a>
+        <div class="dropdown-divider"></div>
+        <form action="{% url 'logout' %}" method="post" style="margin: 0; padding: 0;">
+          {% csrf_token %}
+          <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Profile Pic -->
+    {% comment %} <img src="{{ user.profile.photo.url }}" class="rounded-circle user-photo" alt="Profile"> {% endcomment %}
+    {% comment %} <img src="{{ user.profile.photo.url }}" class="rounded-circle shadow-sm border border-light object-fit-cover" alt="Profile" style="width: 50px; height: 50px;"> {% endcomment %}
+
+    {% if user.profile.photo %}
+  <img src="{{ user.profile.photo.url }}"
+       class="rounded-circle shadow-sm border border-light object-fit-cover"
+       alt="Profile"
+       style="width: 50px; height: 50px;">
+{% else %}
+  <i class="fas fa-user-circle text-secondary"
+     style="font-size: 50px;"></i>
+{% endif %}
+
+
+  </div>
+</nav>
+
+<!-- Toast Messages -->
+{% if messages %}
+<ul style="list-style-type: none; padding: 0px; margin: 2px;">
+  {% for message in messages %}
+  <li class="bg-success text-white text-center py-2">{{ message }}</li>
   {% endfor %}
 </ul>
 {% endif %}

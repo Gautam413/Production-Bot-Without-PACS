@@ -8,7 +8,7 @@ class TaskForm(forms.Form):
     
     Status=forms.ChoiceField(choices=[(None, '---------'),(1,'Not Started'), (2, 'In Progress'), (3,'Completed')])
     PriorityID=forms.ChoiceField(choices=[(None, '---------'),(1,'Urgent'), (2, 'Important'), (3, 'Normal'), (4, 'Low')])
-   
+    
 
     
     

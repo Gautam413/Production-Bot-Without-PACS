@@ -1,0 +1,37 @@
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Assign Ticket #{{ ticket.id }}</h2>
+    <p><strong>Subject:</strong> {{ ticket.subject }}</p>
+    <p><strong>Description:</strong> {{ ticket.description }}</p>
+    <p><strong>Priority:</strong> {{ ticket.priority }}</p>
+    <p><strong>Status:</strong> {{ ticket.status }}</p>
+
+    {% if assigned_already %}
+        <div class="alert alert-info">
+            Already assigned to {{ assignment.assigned_to.get_full_name }} (Due in {{ assignment.due_minutes }} mins)
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Assign Task</button>
+    </form>
+</div>
+{% endblock %} {% endcomment %}
+{% extends 'user/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Assign Ticket #{{ ticket.id }}</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    {{ form|crispy }}
+    
+    <button type="submit" class="btn btn-success mt-2">Assign Ticket</button>
+    <a href="{% url 'ticket-detail' ticket.id %}" class="btn btn-secondary mt-2">Cancel</a>
+  </form>
+</div>
+{% endblock %}

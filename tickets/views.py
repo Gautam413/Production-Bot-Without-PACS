@@ -14,6 +14,21 @@ from django.http import HttpResponse;
 import csv;
 import datetime;
 
+from django.http import HttpResponseForbidden
+from .models import Tickets, Comment, Category
+from .forms import CommentForm, TicketForm
+
+from django.utils.timezone import localtime
+from django.utils.formats import date_format
+from django.core.mail import send_mail
+
+from django.conf import settings
+from Management.DAL.Entities import Users  
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from tickets.models import Tickets
+
 
 @login_required
 def render_pdf(request):
@@ -104,7 +119,7 @@ def dashboard(request):
 	cat_number = num_of_category();
 
 	#paginator function
-	paginator,page_obj,tickets,page = paginated(request,tickets,3);
+	paginator,page_obj,tickets,page = paginated(request,tickets,10);
 
 	total_tickets,admin,technician,customer  = num_of_general();	
 	print('tickets::',tickets)
@@ -132,62 +147,336 @@ def dashboard(request):
 												});
 
 
+
+
+# def ticket_detail(request, id):
+#     # ✅ Allow access if user is logged in OR management user is in session
+#     if not request.user.is_authenticated and not request.session.get('user_id'):
+#         return redirect('login')
+
+#     ticket = get_object_or_404(Tickets, pk=id)
+#     categories = Category.objects.all()
+
+#     pri_design = ''
+#     priority = ''
+#     if ticket.priority == 'critical':
+#         pri_design = 'btn btn-danger rounded-pill'
+#         priority = "Critical"
+#     elif ticket.priority == 'urgent':
+#         pri_design = 'btn btn-warning rounded-pill'
+#         priority = 'Urgent'
+#     elif ticket.priority == 'normal':
+#         pri_design = 'btn btn-info rounded-pill'
+#         priority = "Normal"
+#     else:
+#         pri_design = 'btn btn-success rounded-pill'
+#         priority = "Not Important"
+
+#     comments = Comment.objects.filter(ticket=ticket)
+
+#     if request.method == 'POST':
+#         if not request.user.is_authenticated:
+#             return HttpResponseForbidden("Users cannot comment or edit.")
+
+#         comment_form = CommentForm(data=request.POST)
+#         ticket_form = TicketForm(instance=ticket, data=request.POST, files=request.FILES)
+
+#         if comment_form.is_valid():
+#             new_comment = comment_form.save(commit=False)
+#             new_comment.ticket = ticket
+#             new_comment.user = request.user
+#             new_comment.save()
+#             comment_form = CommentForm()
+
+#         if ticket_form.is_valid():
+#             # 🔒 Prevent ticket editing if it's closed by the user who created it
+#             if ticket.status == 'Closed' and request.user == ticket.user:
+#                 messages.error(request, "You cannot edit a closed ticket.")
+#             else:
+#                 ticket_form.save()
+#                 messages.success(request, "Ticket updated successfully.")
+
+
+# 				supervisor = User.objects.filter(is_superuser=True).first()
+#                 if supervisor and supervisor.email:
+#                     edited_time = date_format(localtime(ticket.updated), "l, F j, Y \\a\\t h:i A")
+#                     ticket_link = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
+
+#                     subject = f"[TICKET UPDATED] #{ticket.id} - {ticket.subject}"
+#                     message = f"""
+# Hi {supervisor.get_full_name() or supervisor.username},
+
+# Ticket #{ticket.id} has been updated by {request.user.get_full_name() or request.user.username} ({request.user.email}) on {edited_time}.
+
+# ━━━━━━━━━━━━━━━━━━━━━━
+# Subject: {ticket.subject}
+# Priority: {ticket.priority.title()}
+# Category: {ticket.category.name if ticket.category else 'None'}
+# ━━━━━━━━━━━━━━━━━━━━━━
+
+# You can view the updated ticket here:
+# {ticket_link}
+
+# Best regards,  
+# HelpDesk System
+# """
+#             try:
+#                 send_mail(
+#                     subject=subject,
+#                     message=message,
+#                     from_email=None,
+#                     recipient_list=[supervisor.email],
+#                     fail_silently=False
+#                 )
+#             except Exception as e:
+#                 print("❌ Error sending edit email:", e)
+
+
+
+
+#     else:
+#         comment_form = CommentForm()
+#         ticket_form = TicketForm(instance=ticket)
+
+#     return render(request, 'tickets/ticket_detail.html', {
+#         'ticket': ticket,
+#         'comment_form': comment_form,
+#         'comments': comments,
+#         'pri_design': pri_design,
+#         'priority': priority,
+#         'nav_ticket': 'active',
+#         'categories': categories,
+#         'ticket_form': ticket_form
+#     })
+
+
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.http import HttpResponseForbidden
+# from django.contrib import messages
+# from .models import Tickets, Comment, Category
+# from .forms import CommentForm, TicketForm
+# from django.core.mail import send_mail
+# from django.utils.timezone import localtime
+# from django.utils.formats import date_format
+# from django.contrib.auth.models import User
+
+# def ticket_detail(request, id):
+#     if not request.user.is_authenticated and not request.session.get('user_id'):
+#         return redirect('login')
+
+#     ticket = get_object_or_404(Tickets, pk=id)
+#     categories = Category.objects.all()
+
+#     pri_design = ''
+#     priority = ''
+#     if ticket.priority == 'critical':
+#         pri_design = 'btn btn-danger rounded-pill'
+#         priority = "Critical"
+#     elif ticket.priority == 'urgent':
+#         pri_design = 'btn btn-warning rounded-pill'
+#         priority = 'Urgent'
+#     elif ticket.priority == 'normal':
+#         pri_design = 'btn btn-info rounded-pill'
+#         priority = "Normal"
+#     else:
+#         pri_design = 'btn btn-success rounded-pill'
+#         priority = "Not Important"
+
+#     comments = Comment.objects.filter(ticket=ticket)
+
+#     if request.method == 'POST':
+#         if not request.user.is_authenticated:
+#             return HttpResponseForbidden("Users cannot comment or edit.")
+
+#         comment_form = CommentForm(data=request.POST)
+#         ticket_form = TicketForm(instance=ticket, data=request.POST, files=request.FILES)
+
+#         if comment_form.is_valid():
+#             new_comment = comment_form.save(commit=False)
+#             new_comment.ticket = ticket
+#             new_comment.user = request.user
+#             new_comment.save()
+#             comment_form = CommentForm()
+
+#         if ticket_form.is_valid():
+#             if ticket.status == 'Closed' and request.user == ticket.user:
+#                 messages.error(request, "You cannot edit a closed ticket.")
+#             else:
+#                 updated_ticket = ticket_form.save()
+#                 messages.success(request, "Ticket updated successfully.")
+
+#                 # supervisor = User.objects.filter(is_superuser=True).first()
+# 				management_emails = list(Users.objects.values_list('UserName', flat=True))
+
+#                 if management_emails:
+#                     edited_time = date_format(localtime(updated_ticket.updated), "l, F j, Y \\a\\t h:i A")
+#                     ticket_link = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
+
+#                     subject = f"[TICKET UPDATED] #{ticket.id} - {ticket.subject}"
+#                     message = f"""
+# Hi Management Team,
+
+# Ticket #{ticket.id} has been updated by {request.user.get_full_name() or request.user.username} ({request.user.email}) on {edited_time}.
+
+# ━━━━━━━━━━━━━━━━━━━━━━
+# Subject: {ticket.subject}
+# Priority: {ticket.priority.title()}
+# Category: {ticket.category.name if ticket.category else 'None'}
+# ━━━━━━━━━━━━━━━━━━━━━━
+
+# You can view the updated ticket here:
+# {ticket_link}
+
+# Best regards,  
+# HelpDesk System
+# """
+#                     try:
+#                         send_mail(
+#                             subject=subject,
+#                             message=message,
+#                             from_email=settings.DEFAULT_FROM_EMAIL, 
+#                             recipient_list=management_emails,
+#                             fail_silently=False
+#                         )
+#                     except Exception as e:
+#                         print("❌ Error sending edit email:", e)
+#     else:
+#         comment_form = CommentForm()
+#         ticket_form = TicketForm(instance=ticket)
+
+#     return render(request, 'tickets/ticket_detail.html', {
+#         'ticket': ticket,
+#         'comment_form': comment_form,
+#         'comments': comments,
+#         'pri_design': pri_design,
+#         'priority': priority,
+#         'nav_ticket': 'active',
+#         'categories': categories,
+#         'ticket_form': ticket_form
+#     })
+
+
+
+def ticket_detail(request, id):
+    if not request.user.is_authenticated and not request.session.get('user_id'):
+        return redirect('login')
+
+    ticket = get_object_or_404(Tickets, pk=id)
+    categories = Category.objects.all()
+
+    # Priority design and label
+    pri_design = ''
+    priority = ''
+    if ticket.priority == 'critical':
+        pri_design = 'btn btn-danger rounded-pill'
+        priority = "Critical"
+    elif ticket.priority == 'urgent':
+        pri_design = 'btn btn-warning rounded-pill'
+        priority = 'Urgent'
+    elif ticket.priority == 'normal':
+        pri_design = 'btn btn-info rounded-pill'
+        priority = "Normal"
+    else:
+        pri_design = 'btn btn-success rounded-pill'
+        priority = "Not Important"
+    is_technician = request.user.groups.filter(name__iexact='technician').exists()
+
+    comments = Comment.objects.filter(ticket=ticket)
+	
+
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden("Users cannot comment or edit.")
+
+        comment_form = CommentForm(data=request.POST)
+        ticket_form = TicketForm(instance=ticket, data=request.POST, files=request.FILES)
+
+        # Save comment
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.ticket = ticket
+            new_comment.user = request.user
+            new_comment.save()
+            comment_form = CommentForm()
+
+        # Save ticket update
+        if ticket_form.is_valid():
+            if ticket.status == 'Closed' and request.user == ticket.user:
+                messages.error(request, "You cannot edit a closed ticket.")
+            else:
+                ticket_form.save()
+                messages.success(request, "Ticket updated successfully.")
+
+                # Send email to management
+                management_emails = list(Users.objects.values_list('UserName', flat=True))
+			
+                if management_emails:
+                    edited_time = date_format(localtime(ticket.updated), "l, F j, Y \\a\\t h:i A")
+                    ticket_link = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
+
+                    subject = f"[TICKET UPDATED] #{ticket.id} - {ticket.subject}"
+                    message = f"""
+Hi Management Team,
+
+Ticket #{ticket.id} has been updated by {request.user.get_full_name() or request.user.username} ({request.user.email}) on {edited_time}.
+
+━━━━━━━━━━━━━━━━━━━━━━
+Subject: {ticket.subject}
+Priority: {ticket.priority.title()}
+Category: {ticket.category.name if ticket.category else 'None'}
+━━━━━━━━━━━━━━━━━━━━━━
+
+You can view the updated ticket here:
+{ticket_link}
+
+Best regards,  
+HelpDesk System
+"""
+                    try:
+						
+                        send_mail(
+                            subject=subject,
+                            message=message,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=management_emails,
+                            fail_silently=False
+                        )
+                    except Exception as e:
+                        print("❌ Error sending edit email:", e)
+
+    else:
+        comment_form = CommentForm()
+        ticket_form = TicketForm(instance=ticket)
+
+    return render(request, 'tickets/ticket_detail.html', {
+        'ticket': ticket,
+        'comment_form': comment_form,
+        'comments': comments,
+        'pri_design': pri_design,
+        'priority': priority,
+        'nav_ticket': 'active',
+        'categories': categories,
+        'ticket_form': ticket_form,
+		'is_technician': is_technician  
+    })
+
+
+
+@user_passes_test(checkIfAdminOrTech,login_url='error')
 @login_required
-def ticket_detail(request,id):
-	ticket = Tickets.objects.get(pk=id);
-	categories = Category.objects.all();
-
-	pri_design = '';
-	priority = '';
-	if ticket.priority == 'critical':
-		pri_design = 'btn btn-danger rounded-pill';
-		priority = "Critical";
-	elif ticket.priority == 'urgent':
-		pri_design = 'btn btn-warning rounded-pill';
-		priority = 'Urgent';
-	elif ticket.priority == 'normal':
-		pri_design = 'btn btn-info rounded-pill';
-		priority = "Normal";
+def change_status(request,id,status):
+	ticket = Tickets.objects.get(pk = id);
+	if status == 'open':
+		ticket.status = 'Open';
+	elif status == 'pending':
+		ticket.status = 'Pending';
 	else:
-		pri_design = 'btn btn-success rounded-pill';
-		priority = "Not Important";
+		ticket.status = 'Closed';
 
-
-
-	comments = Comment.objects.filter(ticket=ticket);
-	#Comment Form handel
-	if request.method == 'POST':
-		#update data to database
-		comment_form = CommentForm(data=request.POST);
-		ticket_form = TicketForm(instance = ticket,data=request.POST,files=request.FILES);
-
-		print("Comment:::",comment_form);
-
-		
-		if comment_form.is_valid():
-			new_comment = comment_form.save(commit = False);
-			new_comment.ticket = ticket;
-			new_comment.user = request.user;
-			new_comment.save();
-			comment_form = CommentForm();
-
-		if ticket_form.is_valid():
-			new_ticket = ticket_form.save();
-
-	else:
-		comment_form = CommentForm();
-		ticket_form = TicketForm(instance=ticket);
-
-	return render(request,'tickets/ticket_detail.html',{'ticket':ticket,
-														'comment_form':comment_form,
-														'comments':comments,
-														'pri_design':pri_design,
-														'priority':priority,
-														'nav_ticket':'active',
-														'categories':categories,
-														'ticket_form':ticket_form
-														});
-
+	# pending # must be key (Pending)
+	ticket.save();
+	messages.success(request,"Status have been change successfully");
+	return redirect('ticket-detail',id=id);
 
 
 @user_passes_test(checkIfAdminOrTech,login_url='error')
@@ -217,23 +506,70 @@ def change_category(request,id,category):
 	return redirect('ticket-detail',id = id);
 
 
-@user_passes_test(checkIfCustomer,login_url='error')
+
+
+@user_passes_test(checkIfCustomer, login_url='error')
 @login_required
 def create_ticket(request):
-	if request.method == 'POST':
-		new_form = TicketForm(data= request.POST,files = request.FILES);
-		if new_form.is_valid():
-			new_ticket = new_form.save(commit = False);
-			new_ticket.user = request.user;
-			#new_ticket.name = request.user.username;
-			new_ticket.save();
-			messages.success(request,'successfully created ticket');
-			return redirect('dashboard');
-	else:
-		new_form = TicketForm();
-	return render(request,'tickets/create_ticket.html' ,{'new_form':new_form,
-														 'new_ticket':'active',
-															});
+    if request.method == 'POST':
+        new_form = TicketForm(data=request.POST, files=request.FILES)
+        if new_form.is_valid():
+            new_ticket = new_form.save(commit=False)
+            new_ticket.user = request.user
+            new_ticket.save()
+
+            # supervisor = User.objects.filter(is_superuser=True).first()
+            management_emails = list(Users.objects.values_list('UserName', flat=True))
+            # print("Supervisor:", supervisor)
+            # print("Supervisor Email:", supervisor.email if supervisor else None)
+
+            if  management_emails:
+                formatted_time = date_format(localtime(new_ticket.created), "l, F j, Y \\a\\t h:i A")  # Example: Wednesday, June 25, 2025 at 04:10 PM
+                ticket_link = request.build_absolute_uri(f"/Management/tickets/{new_ticket.id}/")
+
+                subject = f"[NEW TICKET] #{new_ticket.id} - {new_ticket.subject}"
+                message = f"""
+Hi Management Team,
+
+A new support ticket has been raised by {request.user.get_full_name() or request.user.username} ({request.user.email}) on {formatted_time}.
+
+━━━━━━━━━━━━━━━━━━━━━━
+Subject: {new_ticket.subject}
+Description:
+{new_ticket.description}
+━━━━━━━━━━━━━━━━━━━━━━
+
+You can view and manage the ticket using the link below:
+{ticket_link}
+
+Thank you for your attention.
+
+Best regards,  
+HelpDesk System
+"""
+
+                try:
+                    send_mail(
+                        subject=subject,
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list= management_emails,
+                        fail_silently=False
+                    )
+                    print("Email sent successfully")
+                except Exception as e:
+                    print("Error sending email:", e)
+
+            messages.success(request, 'Successfully created ticket')
+            return redirect('dashboard')
+    else:
+        new_form = TicketForm()
+
+    return render(request, 'tickets/create_ticket.html', {
+        'new_form': new_form,
+        'new_ticket': 'active',
+    })
+
 
 
 @login_required
@@ -470,14 +806,69 @@ def paginated(request,objects,number):
 
 	return paginator,page_obj,objects,page;
 
+# @login_required
+# def close_ticket(request, ticket_id):
+#     if request.method == 'POST':
+#         ticket = get_object_or_404(Tickets, id=ticket_id, user=request.user)
+#         if ticket.status != 'Closed':
+#             ticket.status = 'Closed'
+#             ticket.save()
+#             messages.success(request, f'Ticket #{ticket.id} has been closed successfully.')
+#         else:
+#             messages.info(request, f'Ticket #{ticket.id} is already closed.')
+#     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+
+
+
 @login_required
 def close_ticket(request, ticket_id):
     if request.method == 'POST':
         ticket = get_object_or_404(Tickets, id=ticket_id, user=request.user)
+
         if ticket.status != 'Closed':
             ticket.status = 'Closed'
             ticket.save()
+
+            management_emails = list(Users.objects.values_list('UserName', flat=True))
+
+            if management_emails:
+                closed_time = date_format(localtime(ticket.updated), "l, F j, Y \\a\\t h:i A")
+                ticket_link = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
+
+                subject = f"[TICKET CLOSED] #{ticket.id} - {ticket.subject}"
+                message = f"""
+Hi Anisha Goyal,
+
+The following ticket has been closed by the user who created it ({request.user.get_full_name() or request.user.username} - {request.user.email}) on {closed_time}:
+
+━━━━━━━━━━━━━━━━━━━━━━
+Subject: {ticket.subject}
+Priority: {ticket.priority.title()}
+Category: {ticket.category.name if ticket.category else 'None'}
+━━━━━━━━━━━━━━━━━━━━━━
+
+You can review the closed ticket here:
+{ticket_link}
+
+Best regards,  
+HelpDesk System
+"""
+
+                try:
+                    send_mail(
+                        subject=subject,
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL, 
+                        recipient_list=management_emails,
+                        fail_silently=False
+                    )
+                except Exception as e:
+                    print("❌ Error sending close ticket email:", e)
+
             messages.success(request, f'Ticket #{ticket.id} has been closed successfully.')
         else:
             messages.info(request, f'Ticket #{ticket.id} is already closed.')
+
     return redirect(request.META.get('HTTP_REFERER', '/'))

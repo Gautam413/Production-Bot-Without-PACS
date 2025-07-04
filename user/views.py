@@ -9,6 +9,33 @@ from django.contrib.auth import authenticate, logout
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+# from django.contrib import messages
+from django.conf import settings
+from django.shortcuts import get_object_or_404, redirect
+from Management.DAL.Entities import Users
+from tickets.models import Tickets
+
+from django.contrib.auth.views import LoginView
+from django.urls import reverse
+from django.utils.timezone import localtime
+
+# from .forms import LoginForm
+
+
+# from django.views.decorators.csrf import csrf_exempt
+# from django.contrib import messages
+# from django.core.mail import send_mail
+# from django.conf import settings
+# from django.shortcuts import get_object_or_404, redirect
+# from Management.DAL.Entities import Users  
+# from tickets.models import Tickets
+# from django.contrib.auth.decorators import login_required
+
+
 
 @user_passes_test(checkIfAdmin,login_url='error')
 @login_required
@@ -199,4 +226,179 @@ def contactus(request):
 @require_POST
 def custom_logout(request):
     logout(request)
-    return redirect('user-login')
+    # return redirect('login')
+    return redirect(reverse('user-login'))
+
+
+
+
+
+
+from django.contrib.auth.decorators import login_required
+from Management.presentation.ViewModels.assigntasks import TaskAssignment 
+
+@login_required
+def technic_dashboard(request):
+    if not request.user.is_staff:
+        return redirect('error')  # Optional: restrict to technicians only
+
+    # Get assigned tickets
+    assigned_tasks = TaskAssignment.objects.filter(assigned_to=request.user).select_related('ticket')
+
+    return render(request, 'tickets/technic_dashboard.html',{
+        'assigned_tasks': assigned_tasks,
+        'dashboard': 'active',
+    })
+
+
+
+# # Technician-side revert
+@login_required
+@csrf_exempt
+
+@csrf_exempt
+def revert_ticket_from_technician(request, ticket_id):
+    ticket = get_object_or_404(Tickets, id=ticket_id)
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if reason:
+            # ✅ FIX: update the status back to 'Pending' or 'Open'
+            ticket.status = 'Pending'
+            ticket.save()
+
+            management_emails = list(Users.objects.values_list('UserName', flat=True))
+            message = (
+                f"{request.user.username} has reverted ticket #{ticket.id}.\n\n"
+                f"Subject: {ticket.subject}\n\n"
+                f"Reason:\n{reason}\n\n"
+                f"Link: http://127.0.0.1:8000/Management/tickets/{ticket.id}/"
+            )
+
+            try:
+                send_mail(
+                    subject=f"Ticket #{ticket.id} Reverted by {request.user.username} ",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=management_emails,
+                    fail_silently=False
+                )
+                messages.success(request, f"Ticket #{ticket.id} reverted and email sent to management.")
+            except Exception as e:
+                messages.error(request, f"Failed to send email: {str(e)}")
+        else:
+            messages.error(request, "Please enter a reason to revert.")
+
+    return redirect('technic-dashboard')
+
+# def revert_ticket_from_technician(request, ticket_id):
+#     ticket = get_object_or_404(Tickets, id=ticket_id)
+
+#     if request.method == 'POST':
+#         reason = request.POST.get('reason', '').strip()
+#         if reason:
+#             management_emails = list(Users.objects.values_list('UserName', flat=True))
+#             message = (
+#                 f"{request.user.username} has reverted ticket #{ticket.id}.\n\n"
+#                 f"Subject: {ticket.subject}\n\n"
+#                 f"Reason:\n{reason}\n\n"
+#                 f"Link: http://127.0.0.1:8000/Management/tickets/{ticket.id}/"
+#             )
+
+#             try:
+#                 send_mail(
+#                     subject=f"Ticket #{ticket.id} Reverted by {request.user.username} ",
+#                     message=message,
+#                     from_email=settings.DEFAULT_FROM_EMAIL,
+#                     recipient_list=management_emails,
+#                     fail_silently=False
+#                 )
+#                 messages.success(request, f"Ticket #{ticket.id} reverted and email sent to management.")
+#             except Exception as e:
+#                 messages.error(request, f"Failed to send email: {str(e)}")
+#         else:
+#             messages.error(request, "Please enter a reason to revert.")
+#     return redirect('technic-dashboard')
+
+
+
+@login_required
+@csrf_exempt
+def resolve_ticket(request, ticket_id):
+    ticket = get_object_or_404(Tickets, id=ticket_id)
+ 
+    if request.method == 'POST' and ticket.status != 'Closed':
+        ticket.status = 'Resolved'  
+        # resolved_time = localtime(ticket.resolved_at).strftime('%Y-%m-%d %H:%M')
+        ticket.save()
+
+        management_emails = list(Users.objects.values_list('UserName', flat=True))
+
+        ticket_url = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
+        login_url = request.build_absolute_uri(f"/Management/user/login/")
+		
+
+
+        try:
+            send_mail(
+                subject=f"Ticket #{ticket.id} Marked as Resolved",
+                message=(
+                    f"{request.user.username} has marked ticket #{ticket.id} as resolved.\n\n"
+                    f"Subject: {ticket.subject}\n"
+                    f"Description: {ticket.description}\n"
+					# f"Resolved At: {resolved_time}\n"
+
+                    # f"Resolved At: {ticket.resolved_at.strftime('%Y-%m-%d %H:%M')}\n"
+                    f"You can check using the system:"
+				    f"Link: {ticket_url}"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=management_emails,
+                fail_silently=False
+            )
+        except Exception as e:
+            messages.error(request, f"Failed to send email to management: {str(e)}")
+
+        # Send mail to ticket creator
+        if ticket.user and ticket.user.email:
+            try:
+                send_mail(
+                    subject=f"Your Ticket #{ticket.id} has been Resolved",
+                    message=(
+                        f"Hi {ticket.user.username},\n\n"
+                        f"Your support ticket has been marked as resolved by {request.user.username}.\n"
+                        f"You may review the resolution and close the ticket if you're satisfied.\n\n"
+                        f"Subject: {ticket.subject}\n"
+                        # f"Resolved At: {ticket.resolved_at.strftime('%Y-%m-%d %H:%M')}\n"
+						f"Kindly check it using the system:"
+                        f"Link to Ticket: {login_url}"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[ticket.user.email],
+                    fail_silently=False
+                )
+            except Exception as e:
+                messages.error(request, f"Failed to notify user: {str(e)}")
+
+        messages.success(request, f"Ticket #{ticket.id} marked as resolved. Emails sent.")
+    else:
+        messages.warning(request, "Invalid request or ticket already closed.")
+
+    return redirect('technic-dashboard')
+
+
+
+class CustomLoginView(LoginView):
+    authentication_form = LoginForm
+    
+    def get_success_url(self):
+        user = self.request.user
+        print("LOGGED IN USER:", user.username)
+        print("GROUPS:", list(user.groups.values_list("name", flat=True)))
+
+        if user.is_staff and user.groups.filter(name__iexact='technician').exists():
+            print("🔁 Redirecting to technician-dashboard")
+            return reverse('technic-dashboard')
+        print("➡ Redirecting to dashboard")
+        return reverse('dashboard')
+

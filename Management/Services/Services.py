@@ -10,8 +10,8 @@ from Management.DAL.repository import *
 
 def InsertUser(user):
     UserEntry = {
-        'firstname': user.firstname,
-        'lastname': user.lastname,
+        'FirstName': user.firstname,
+        'LastName': user.lastname,
         'UserName': user.UserName,
         'Password': user.Password,
     }
@@ -60,15 +60,20 @@ def assignTask(Task,pk):
     addAssign(AssignedTask)
 
 
-def viewID(pk,form):
-    if form=='Users':
-        return  Users.objects.get(UserID=pk)
-    elif form=='TaskInformation':
+def viewID(pk, form):
+    print(f"Looking for {form} with ID: {pk}")  # Debugging print statement
+    if form == 'Users':
+        return Users.objects.get(UserID=pk)
+    elif form == 'TaskInformation':
         return TaskInformation.objects.get(TaskID=pk)
-    elif form=='Status':
-        return  Status.objects.get(StatusID = pk)
-    elif form== 'Priority':
-        return Priority.objects.get(PriorityID = pk)
+    elif form == 'Status':
+        return Status.objects.get(StatusID=pk)
+    elif form == 'Priority':
+        try:
+            return Priority.objects.get(PriorityID=pk)
+        except Priority.DoesNotExist:
+            print(f"Error: Priority with ID {pk} does not exist.")
+            return None  # Return None instead of breaking
     else:
         return None
 

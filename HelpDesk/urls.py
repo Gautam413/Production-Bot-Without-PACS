@@ -23,7 +23,7 @@ urlpatterns = [
     #path('user/',include('user.urls')),
     #path('',include('tickets.urls')),
     #path('task_management/',include('task_management.urls')),
-    path('', include('Management.urls')),
+    path('Management/', include('Management.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

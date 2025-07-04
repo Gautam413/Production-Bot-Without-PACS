@@ -1,0 +1,260 @@
+{% comment %} {% extends 'user/base.html' %} {% endcomment %}
+{% comment %} {% block title %}Technician Dashboard{% endblock %} {% endcomment %}
+{% comment %} 
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-primary">Tickets Assigned to You</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#ID</th>
+        <th>Name</th>
+        <th>Subject</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Due In</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in assigned_tasks %}
+        <tr>
+          <td>{{ task.ticket.id }}</td>
+          <td>{{ task.ticket.name }}</td>
+          <td>{{ task.ticket.subject }}</td>
+          <td>{{ task.ticket.status }}</td>
+          <td>{{ task.ticket.priority }}</td>
+          <td>{{ task.due_minutes }} mins</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">No tickets assigned yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} {% endcomment %}
+
+
+{% comment %} 
+{% block title %}Technician Dashboard{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-primary">Tickets Assigned to You</h2>
+  <table class="table table-hover shadow-sm">
+    <thead class="thead-dark">
+      <tr>
+        <th>#ID</th>
+        <th>Created By</th>
+        <th>Task</th>
+        <th>Created At</th>
+        <th>Category</th>
+        <th>Priority</th>
+        <th>Due In</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in assigned_tasks %}
+        <tr>
+          <td>{{ task.ticket.id }}</td>
+          <td>{{ task.ticket.user.username }}</td>
+          <td>{{ task.ticket.subject }}</td>
+          <td>{{ task.ticket.created }}</td>
+          <td>{{ task.ticket.category }}</td>
+          <td>{{ task.ticket.priority }}</td>
+          <td>{{ task.due_minutes }} mins</td>
+          <td>
+            {% if task.ticket.status != 'Closed' %}
+              <form method="post" action="{% url 'resolve-ticket' task.ticket.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm">Resolve</button>
+              </form>
+            {% else %}
+              <span class="text-muted">Closed</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="text-center">No tickets assigned yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} {% endcomment %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IT Support Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body style="background-color: white;">
+    {% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="container-fluid mt-5">
+    <h2 class="text-center text-primary mb-4">🛠️ IT Support Dashboard</h2>
+
+    <div class="table-responsive p-4 rounded">
+      <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+          <tr>
+            <th>Task ID</th>
+            <th>Created By</th>
+            <th>Task</th>
+            <th>Created At</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Due Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for task in assigned_tasks %}
+        <tr {% if task.ticket.status == 'Closed' %} class="table-success" {% endif %}>
+
+            <td>#{{ task.ticket.id }}</td>
+            <td>{{ task.ticket.user.username }}</td>
+            {% comment %} <td>{{ task.ticket.subject }}</td> {% endcomment %}
+
+            <td>
+                <a href="{% url 'ticket-detail' task.ticket.id %}" target="_blank">
+                  {{ task.ticket.subject|truncatewords:3 }}
+                </a>
+              </td>
+              
+            <td>{{ task.ticket.created|date:"M d, Y h:i A" }}</td>
+            <td>{{ task.ticket.category }}</td>
+            <td>
+{% comment %} 
+                # 	if ticket.priority == 'critical':
+# 		pri_design = 'btn btn-danger rounded-pill';
+# 		priority = "Critical";
+# 	elif ticket.priority == 'urgent':
+# 		pri_design = 'btn btn-warning rounded-pill';
+# 		priority = 'Urgent';
+# 	elif ticket.priority == 'normal':
+# 		pri_design = 'btn btn-info rounded-pill';
+# 		priority = "Normal";
+# 	else:
+# 		pri_design = 'btn btn-success rounded-pill';
+# 		priority = "Not Important"; {% endcomment %}
+              {% if task.ticket.priority == 'critical' %}
+                <span class="badge badge-danger">Critical</span>
+              {% elif task.ticket.priority == 'urgent' %}
+                <span class="badge badge-warning">Urgent</span>
+              {% elif task.ticket.priority == 'normal' %}
+                <span class="badge badge-info">Normal</span>
+              {% else %}
+                <span class="badge badge-secondary">Not Important</span>
+              {% endif %}
+            </td>
+            <td>{{ task.due_minutes }} mins</td>
+            {% comment %} <td>
+                 {% if task.ticket.status != 'Closed' %}
+                  <form method="post" action="{% url 'resolve-ticket' task.ticket.id %}"
+                        onsubmit="return confirm('Are you sure you want to mark this as resolved?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success mb-1">Resolve</button>
+                  </form>
+              
+                  <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#revertModal{{ task.ticket.id }}">Revert</button>
+              
+                  <!-- Revert Modal -->
+                  <div class="modal fade" id="revertModal{{ task.ticket.id }}" tabindex="-1" aria-labelledby="revertLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <form method="post" action="{% url 'revert-ticket-technician' task.ticket.id %}">
+                        {% csrf_token %}
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Revert Ticket #{{ task.ticket.id }}</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                          </div>
+                          <div class="modal-body">
+                            <div class="form-group">
+                              <label for="reason">Reason for reverting:</label>
+                              <textarea name="reason" class="form-control" rows="4" required></textarea>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="submit" class="btn btn-warning">Send Revert</button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                {% else %}
+                  <span class="badge badge-success">Resolved</span>
+                {% endif %}
+              </td>
+               {% endcomment %}
+
+               <td>
+                {% if task.ticket.status == 'Resolved' %}
+                  <span class="badge badge-success">Resolved</span>
+                
+                {% elif task.ticket.status == 'Closed' %}
+                  <span class="badge badge-secondary">Closed</span>
+              
+                {% else %}
+                  <form method="post" action="{% url 'resolve-ticket' task.ticket.id %}"
+                        onsubmit="return confirm('Are you sure you want to mark this as resolved?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success mb-1">Resolve</button>
+                  </form>
+              
+                  <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#revertModal{{ task.ticket.id }}">Revert</button>
+              
+                  <!-- Revert Modal -->
+                  <div class="modal fade" id="revertModal{{ task.ticket.id }}" tabindex="-1" aria-labelledby="revertLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <form method="post" action="{% url 'revert-ticket-technician' task.ticket.id %}">
+                        {% csrf_token %}
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Revert Ticket #{{ task.ticket.id }}</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                          </div>
+                          <div class="modal-body">
+                            <div class="form-group">
+                              <label for="reason">Reason for reverting:</label>
+                              <textarea name="reason" class="form-control" rows="4" required></textarea>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="submit" class="btn btn-warning">Send Revert</button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                {% endif %}
+              </td>
+              
+              
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted">No tickets assigned yet.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

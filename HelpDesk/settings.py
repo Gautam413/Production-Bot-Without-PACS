@@ -113,7 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Rangoon'
+# TIME_ZONE = 'Asia/Rangoon'
+
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -128,18 +130,26 @@ USE_TZ = True
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
+# LOGOUT_URL = 'user-login'
 LOGOUT_URL = 'logout'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER= 'helpdesksystem.website@gmail.com'
-EMAIL_HOST_PASSWORD = 'helpdesksystem'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend';
 
-import os;
+
+
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtpout.secureserver.net'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = 'info@xraidigital.com'
+EMAIL_HOST_PASSWORD = 'U4rad@2020'
+DEFAULT_FROM_EMAIL = 'info@xraidigital.com'
+
+
+
 
 
 MEDIA_URL = '/profile_pictures/';

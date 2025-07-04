@@ -1,4 +1,3 @@
-
 from Management.DAL.Entities import *
 
 

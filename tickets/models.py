@@ -18,6 +18,7 @@ class Tickets(models.Model):
 	STATUS_CHOICES = (
 						('Open','open'), # (Key,value)
 						('Pending','pending'),
+						('Resolved', 'Resolved'), 
 						('Closed','closed')
 					 );
 
@@ -32,6 +33,7 @@ class Tickets(models.Model):
 	priority = models.CharField(max_length=100,choices= SET_PRIORITY,default = 'not_important');
 	created = models.DateTimeField(auto_now_add =True);
 	updated = models.DateTimeField(auto_now = True);
+	
 	def __str__(self):
 		return self.name;
 

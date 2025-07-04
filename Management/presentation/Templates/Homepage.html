@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,17 +25,109 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            {% comment %} <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Register</h5>
                         <p class="card-text">Don't have an account? Register now!</p>
-                        <a href="{% url 'task-register' %}" class="btn btn-primary">Register</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div> {% endcomment %}
+        {% comment %} </div>
     </div>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html> {% endcomment %} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Management System</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      max-width: 600px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #343a40;
+      font-weight: bold;
+    }
+
+    .card {
+      border: none;
+      border-radius: 12px;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #007bff;
+    }
+
+    .btn-primary {
+      width: 100%;
+      font-weight: 500;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Task Management System</h1>
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card mb-3">
+          <div class="card-body text-center">
+            <h5 class="card-title">Login</h5>
+            <p class="card-text">Already have an account? Login now!</p>
+            <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+          </div>
+        </div>
+
+        {% comment %}
+        <div class="card">
+          <div class="card-body text-center">
+            <h5 class="card-title">Register</h5>
+            <p class="card-text">Don't have an account? Register now!</p>
+            <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+          </div>
+        </div>
+        {% endcomment %}
+      </div>
+    </div>
+  </div>
+
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

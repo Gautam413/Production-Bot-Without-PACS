@@ -15,9 +15,20 @@
 				<td>
 					<div style="display: inline-flex;">
 						<a href="{% url 'user-detail-view' id=user.id %}">
-							<img src="{{user.profile.photo.url}}" alt="profile"
+							{% comment %} <img src="{{user.profile.photo.url}}" alt="profile"
 							width="50" height="50"
-							class="border border-primary rounded-circle mr-3">
+							class="border border-primary rounded-circle mr-3"> {% endcomment %}
+
+							{% if user.profile.photo %}
+							<img src="{{ user.profile.photo.url }}"
+								 class="rounded-circle shadow-sm border border-light object-fit-cover"
+								 alt="Profile"
+								 style="width: 20px; height: 20px;">
+						  {% else %}
+							<i class="fas fa-user-circle text-secondary"
+							   style="font-size: 40px;"></i>
+						  {% endif %}
+
 						</a>
 						<div>
 							<a href="{% url 'user-detail-view' id=user.id %}">

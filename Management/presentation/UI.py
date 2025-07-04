@@ -14,6 +14,18 @@ from Management.Services.ServiceModels.TaskDataServices import TaskDataServices
 from ..Services.Services import *
 from django.core.exceptions import ValidationError
 
+
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from Management.presentation.ViewModels.assigntasks import TaskAssignment
+from tickets.models import Tickets
+from django.contrib.auth.models import User
+from Management.presentation.ViewModels.assignforms import TaskAssignForm
+from Management.DAL.Entities import Users  
+from django.conf import settings
+
+
 def landing_page(request):
     return render(request, 'landing.html')
 
@@ -58,59 +70,48 @@ def user_login(request):
         
     else:
         form = LoginForm()  
-    return render(request, 'Login.html', {'form': form})
+    return render(request, 'login.html', {'form': form})
+
+
 
 def Home(request):
     
-    tasklist=TaskDetails()
-    assignedlist=TaskDataDetails()
-    Task_view=[]
-    for task in tasklist:
-        task_vm = TaskViewModel(
-            taskID=task.TaskID,
-            Assignedby=task.Assignedby,  
-            Title=task.Title,  
-            Description=task.Description,  
-            DueDate=task.DueDate,  
-            Status=task.Status,  
-            Priority=task.Priority,
-            
-        ) 
-        Task_view.append(task_vm)
-    return render(request,'TaskManagement.html',{'form':Task_view})
+   tickets = Tickets.objects.select_related('user', 'category', 'taskassignment').order_by('-created')  
+   users = User.objects.filter(is_staff=True, is_superuser=False, is_active=True)
 
+   return render(request, 'TaskManagement.html', {
+        'tickets': tickets,  # not assignments
+        'users': users
+    })
+    
 
 
 def addTask(request):
-    user_id = request.session.get('user_id')
-    user=viewID(user_id,'Users')
-    # data=TaskData.objects.select_related('TaskID')
-    # for i in data:
-    #     if i.AssignedTo.firstname=='Sasidhar':
-    #         print(i.AssignedTo.firstname)
     if request.method == 'POST':
         form = TaskForm(request.POST)
         if form.is_valid():
             cleaned_data = form.cleaned_data
-            user=viewID(user_id,'Users')
-            priority= viewID(cleaned_data['PriorityID'],'Priority')
-            status= viewID(cleaned_data['Status'],'Status')
-            
+            priority_obj = viewID(cleaned_data['PriorityID'], 'Priority')
+
+            if priority_obj is None:
+                return HttpResponse("Error: Priority does not exist", status=400)
+
             task = TaskInformationServices(
                 TaskID=None,
                 Title=cleaned_data['Title'],
                 Description=cleaned_data['Description'],
-                StartDate=None,
                 DueDate=cleaned_data['DueDate'],
-                Assignedby=user, 
-                Status=status,
-                Priority=priority,
+                Assignedby=request.user,  # Ensure Assignedby is set correctly
+                Status=cleaned_data['Status'],
+                Priority=priority_obj,
             )
+
             InsertTask(task)
-            return redirect('TaskManagement')
+            return redirect('task_list')  # Adjust as needed
+
     else:
         form = TaskForm()
-    return render(request, 'CreateTask.html', {'form': form})
+    return render(request, 'add_task.html', {'form': form})
 
 def updateTask(request,pk):
     data=viewID(pk,"TaskInformation")
@@ -130,7 +131,7 @@ def updateTask(request,pk):
                 Description=task['Description'],
                 StartDate=None,
                 DueDate=data['DueDate'],
-                Assignedby=user.UserName, 
+                Assignedby=user, 
                 Status=status,
                 Priority=priority,
             )
@@ -278,3 +279,116 @@ def comments(request,pk):
     else:
         form=CommentsForm()
     return render(request, "comments.html", {'form':form,'Content':Comments})
+
+
+
+
+
+def assign_task(request, ticket_id):
+    ticket = get_object_or_404(Tickets, id=ticket_id)
+
+    if request.method == 'POST':
+        form = TaskAssignForm(request.POST)
+        if form.is_valid():
+            assigned_to = form.cleaned_data['assigned_to']
+            due_minutes = form.cleaned_data['due_minutes']
+
+            TaskAssignment.objects.update_or_create(
+                ticket=ticket,
+                defaults={
+                    'assigned_to': assigned_to,
+                    'due_minutes': due_minutes
+                }
+            )
+
+            # ticket.status = "Assigned"
+            ticket.status = "Pending"
+            ticket.save()
+            ticket_link = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
+            login_url = request.build_absolute_uri(f"/Management/user/login/")
+
+
+            management_emails = list(Users.objects.values_list('UserName', flat=True))
+            send_mail(
+                subject=f"You have been assigned Ticket #{ticket.id}",
+                message=f"""
+Hi {assigned_to.get_full_name() or assigned_to.username},
+
+You have been assigned a new ticket:
+
+━━━━━━━━━━━━━━━━━━━
+Subject: {ticket.subject}
+Description: {ticket.description}
+Due In: {due_minutes} minutes
+━━━━━━━━━━━━━━━━━━━
+
+Please check the system to take necessary action.
+Link: {login_url}
+
+- HelpDesk Admin
+""",
+                
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[assigned_to.email],
+                fail_silently=False
+            )
+
+            send_mail(
+                subject=f"Update on your Ticket #{ticket.id}",
+                message=f"""
+Hi {ticket.user}, your issue has been assigned to {assigned_to}.
+                
+━━━━━━━━━━━━━━━━━━━
+Subject: {ticket.subject}
+Description: {ticket.description}
+Estimated Resolving Time: {due_minutes} minutes
+━━━━━━━━━━━━━━━━━━━
+
+- HelpDesk Admin
+Created by Gautam""",
+             
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[ticket.user.email],
+                fail_silently=False
+            )
+
+            messages.success(request, f"Task assigned to {assigned_to.username} and emails sent.")
+            return redirect('TaskManagement')  
+
+
+
+from django.views.decorators.http import require_POST
+@require_POST
+def revert_ticket(request, ticket_id):
+    ticket = get_object_or_404(Tickets, id=ticket_id)
+    message_text = request.POST.get('feedback') 
+    management_emails = list(Users.objects.values_list('UserName', flat=True))
+    if not message_text:
+        messages.warning(request, "No message provided.")
+    else:
+        try:
+            send_mail(
+                subject=f"Revert on Ticket #{ticket.id}",
+                message=f"""
+Hello {ticket.user.get_full_name() or ticket.user.username},
+
+Your submitted ticket has been reverted for the following reason:
+
+━━━━━━━━━━━━━━━━━━━
+{message_text}
+━━━━━━━━━━━━━━━━━━━
+
+Please review and make changes to your ticket accordingly.
+
+- HelpDesk Admin
+""",
+                
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[ticket.user.email],
+                fail_silently=False
+            )
+            messages.success(request, f"Revert email sent to {ticket.user.username}.")
+        except Exception as e:
+            messages.warning(request, f"Failed to send revert email: {str(e)}")
+
+    return redirect('TaskManagement')  

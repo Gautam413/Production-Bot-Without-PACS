@@ -19,7 +19,7 @@ class TicketForm(forms.ModelForm):
 		self.helper.form_show_labels = False;
 	class Meta:
 		model =  Tickets;
-		fields = ('name','subject','description','priority','attachment');
+		fields = ('name','subject','description','category','priority','attachment');
 
 class CategoryForm(forms.ModelForm):
 	class Meta:

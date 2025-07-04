@@ -1,5 +1,69 @@
 {% extends 'user/base.html' %}
 {% load crispy_forms_tags %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f4f6fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+    }
+
+    .rounded-pill {
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 0.4em 0.9em;
+    }
+
+    h3 {
+        font-weight: bold;
+    }
+
+    h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+    }
+
+    p {
+        margin-bottom: 0.6rem;
+    }
+
+    .btn-group .dropdown-menu {
+        min-width: 120px;
+    }
+
+    .btn-group .dropdown-menu a:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .badge-info {
+        background-color: #17a2b8;
+    }
+
+    .badge-warning {
+        background-color: #ffc107;
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    .form-control {
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}
+
+
 {% block content %}
 <div class="d-flex flex-column justify-content-center align-items-center">
 <div class="card p-3 w-75 mb-1 mt-1" style="border-radius: 20px;">
@@ -11,10 +75,21 @@
 	>
 		<div>
 
-			<img src="{{ticket.user.profile.photo.url}}" alt="profile"
+			{% comment %} <img src="{{ticket.user.profile.photo.url}}" alt="profile"
 			width="50" height="50"
 			class="border border-primary rounded-circle mr-3" 
-			>
+			> {% endcomment %}
+
+
+			{% if user.profile.photo %}
+			<img src="{{ user.profile.photo.url }}"
+				 class="rounded-circle shadow-sm border border-light object-fit-cover"
+				 alt="Profile"
+				 style="width: 20px; height: 20px;">
+		  {% else %}
+			<i class="fas fa-user-circle text-secondary"
+			   style="font-size: 40px;"></i>
+		  {% endif %}
 		</div>
 		<div>
 			<h5 style="color: blue;">{{ticket.user.username}}
@@ -66,10 +141,12 @@
 		<div class="{{pri_design}} mr-1">{{priority}}</div>
 
 		<!-- Status Buttons Condition -->
-		{% if ticket.status == 'Open' %}
+		{% comment %} {% if ticket.status == 'Open' %}
 		<!-- status  button -->
-		{% if request.user.is_superuser or request.user.is_staff %}
-		<div class="btn-group">
+		{% if request.user.is_superuser %} {% endcomment %}
+
+		{% comment %} {% if request.user.is_superuser or request.user.is_staff %} {% endcomment %}
+		{% comment %} <div class="btn-group">
 			<button type="button" class="btn btn-danger dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			Open
 			</button>
@@ -84,7 +161,7 @@
 
 
 		{% elif ticket.status == 'Pending' %}
-		{% if request.user.is_superuser or request.user.is_staff %}
+		{% if request.user.is_superuser %}
 		<div class="btn-group">
 			  <button type="button" class="btn btn-info dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			    Pending
@@ -99,7 +176,7 @@
 		{% endif %}
 		{% else %}
 
-		{% if request.user.is_superuser or request.user.is_staff %}
+		{% if request.user.is_superuser  %}
 		<div class="btn-group">
 			  <button type="button" class="btn btn-success dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			    Closed
@@ -125,13 +202,90 @@
 			    {% endfor %}
 			  </div>
 		</div>
+		{% endif %} {% endcomment %}
+		{% if ticket.status == 'Open' %}
+		{% if request.user.is_superuser %}
+		  <div class="btn-group">
+			<button type="button" class="btn btn-danger dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			  Open
+			</button>
+			<div class="dropdown-menu">
+			  <a class="dropdown-item" href="pending">Pending</a>
+			  <a class="dropdown-item" href="resolved">Resolved</a>
+			  <a class="dropdown-item" href="close">Close</a>
+			</div>
+		  </div>
+		{% else %}
+		  <div class="btn btn-danger rounded-pill">Open</div>
 		{% endif %}
-
+	  
+	  {% elif ticket.status == 'Pending' %}
+		{% if request.user.is_superuser %}
+		  <div class="btn-group">
+			<button type="button" class="btn btn-info dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			  Pending
+			</button>
+			<div class="dropdown-menu">
+			  <a class="dropdown-item" href="open">Open</a>
+			  <a class="dropdown-item" href="resolved">Resolved</a>
+			  <a class="dropdown-item" href="close">Close</a>
+			</div>
+		  </div>
+		{% else %}
+		  <div class="btn btn-info rounded-pill">Pending</div>
+		{% endif %}
+	  
+	  {% elif ticket.status == 'Resolved' %}
+		{% if request.user.is_superuser %}
+		  <div class="btn-group">
+			<button type="button" class="btn btn-primary dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			  Resolved
+			</button>
+			<div class="dropdown-menu">
+			  <a class="dropdown-item" href="open">Open</a>
+			  <a class="dropdown-item" href="pending">Pending</a>
+			  <a class="dropdown-item" href="close">Close</a>
+			</div>
+		  </div>
+		{% else %}
+		  <div class="btn btn-primary rounded-pill">Resolved</div>
+		{% endif %}
+	  
+	  {% else %}
+		{% if request.user.is_superuser %}
+		  <div class="btn-group">
+			<button type="button" class="btn btn-success dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			  Closed
+			</button>
+			<div class="dropdown-menu">
+			  <a class="dropdown-item" href="open">Open</a>
+			  <a class="dropdown-item" href="pending">Pending</a>
+			  <a class="dropdown-item" href="resolved">Resolved</a>
+			</div>
+		  </div>
+		{% else %}
+		  <div class="btn btn-success rounded-pill">Closed</div>
+		{% endif %}
+	  {% endif %}
+	  
+	  {% if request.user.is_superuser %}
+		<div class="btn-group ml-1">
+		  <button type="button" class="btn btn-info dropdown-toggle rounded-pill" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			Categories
+		  </button>
+		  <div class="dropdown-menu bg-primary">
+			{% for category in categories %}
+			  <a class="dropdown-item text-white border-bottom" href="category/{{category.slug}}">{{category.name}}</a>
+			{% endfor %}
+		  </div>
+		</div>
+	  {% endif %}
+	  
 
 		<!-- Convert To PDF if user is admin and technician  -->
-		{% if request.user.is_superuser or request.user.is_staff %}
+		{% comment %} {% if request.user.is_superuser or request.user.is_staff %}
 		<a href="/ticket/pdf/{{ticket.id}}" class="btn btn-success rounded-pill ml-1">PDF</a>
-		{% endif %}
+		{% endif %} {% endcomment %}
 		<!-- end for PDF Convert Button -->
 
 
@@ -151,11 +305,31 @@
 		<!-- for prfile -->
 		<div style="display:inline-flex;" class="mt-3">
 			<div>
-				<img src="{{comment.user.profile.photo.url}}"
+				{% comment %} <img src="{{comment.user.profile.photo.url}}"
 					width="50" height="50"
 					class="border border-primary rounded-circle mr-3" 
 					alt="Profile" 
-				>
+				> {% endcomment %}
+
+				{% comment %} {% if user.profile.photo %}
+			<img src="{{ user.profile.photo.url }}"
+				 class="rounded-circle shadow-sm border border-light object-fit-cover"
+				 alt="Profile"
+				 style="width: 20px; height: 20px;">
+		  {% else %}
+			<i class="fas fa-user-circle text-secondary"
+			   style="font-size: 40px;"></i> {% endif %}{% endcomment %}
+
+			   {% if user.profile.photo %}
+			<img src="{{ user.profile.photo.url }}"
+				 class="rounded-circle shadow-sm border border-light object-fit-cover"
+				 alt="Profile"
+				 style="width: 20px; height: 20px;">
+		  {% else %}
+			<i class="fas fa-user-circle text-secondary"
+			   style="font-size: 40px;"></i>
+		  {% endif %}
+		  
 			</div>
 			<div>
 				<h5 style="font-size: 0.9em;color:blue;">{{comment.user.username}}</h5>
