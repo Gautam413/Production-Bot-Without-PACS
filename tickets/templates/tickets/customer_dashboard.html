@@ -1,33 +1,37 @@
-{% extends 'user/base.html' %}
-{% load crispy_forms_tags %}
-
-{% block content %}
 <div class="d-flex justify-content-center">
-	<div class="card m-2 p-3 w-50">
-<form method="POST" novalidate="true" enctype="multipart/form-data">
-	{% csrf_token %}
-	<label for="name"> Department</label><span class="text-danger">*</span>
-	{{new_form.name|as_crispy_field}}
+	<div class="card m-2 p-3 w-75">
+		<style>
+			.no-click {
+			  pointer-events: none;
+			  opacity: 0.85;
+			  cursor: default;
+			}
+		  </style>
+		  
+		  <div>
+			<a href="javascript:void(0)" class="btn btn-danger rounded-pill no-click">{{ open }} Open Tickets</a>
+			<a href="javascript:void(0)" class="btn btn-info rounded-pill no-click">{{ pending }} Pending Tickets</a>
+			<a href="javascript:void(0)" class="btn btn-success rounded-pill no-click">{{ closed }} Closed Tickets</a>
+			<a href="javascript:void(0)" class="btn btn-dark rounded-pill no-click">Recent</a> 
 
-	<label for="subject"> Subject </label><span class="text-danger">*</span>
-	{{new_form.subject|as_crispy_field}}
-    
-    <label for="category"> Category </label><span class="text-danger">*</span>
-	{{new_form.category|as_crispy_field}}
-
-
-	<label for="description"> Description  </label><span class="text-danger">*</span>
-	{{new_form.description|as_crispy_field}}
-
-	<label for="priority"> Priority </label>
-	{{new_form.priority|as_crispy_field}}
-
-	<label for="attachment"> Attachment </label>
-	{{new_form.attachment|as_crispy_field}}
-
-	<input type="submit" name="submit" value="Create" class="btn btn-success">
-</form>
+			{% comment %} <a href="{% url 'status-view' status='Open' %}" class="btn btn-danger rounded-pill">
+				{{ open }} Open Tickets
+			  </a>
+			  
+			  <a href="{% url 'status-view' status='Pending' %}" class="btn btn-info rounded-pill">
+				{{ pending }} Pending Tickets
+			  </a>
+			  
+			  <a href="{% url 'status-view' status='Closed' %}" class="btn btn-success rounded-pill">
+				{{ closed }} Closed Tickets
+			  </a>
+			  
+			  <a href="{% url 'status-view' status='Recent' %}" class="btn btn-dark rounded-pill">
+				Recent
+			  </a> {% endcomment %}
+			  
+		  </div>
+{% include 'tickets/tickets_list.html' %}
+{% include 'tickets/paginator.html' %}
 </div>
 </div>
-
-{% endblock %}

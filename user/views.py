@@ -266,13 +266,13 @@ def revert_ticket_from_technician(request, ticket_id):
             # ✅ FIX: update the status back to 'Pending' or 'Open'
             ticket.status = 'Pending'
             ticket.save()
-
+            ticket_url = request.build_absolute_uri(f"/Management/tickets/{ticket.id}/")
             management_emails = list(Users.objects.values_list('UserName', flat=True))
             message = (
                 f"{request.user.username} has reverted ticket #{ticket.id}.\n\n"
                 f"Subject: {ticket.subject}\n\n"
                 f"Reason:\n{reason}\n\n"
-                f"Link: http://127.0.0.1:8000/Management/tickets/{ticket.id}/"
+                f"Link: {ticket_url}"
             )
 
             try:
